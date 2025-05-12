@@ -8,10 +8,14 @@ class MLP:
         self.layers = []
         self.use_bias = use_bias
         for i in range(len(layer_sizes) - 1):
-            self.layers.append(Layer(layer_sizes[i + 1], layer_sizes[i], use_bias))
+            self.layers.append(
+                Layer(
+                    num_neurons=layer_sizes[i + 1], # +1 bo nie tworze de facto tej pierwszej warstwy
+                    num_inputs_per_neuron=layer_sizes[i],
+                    use_bias=use_bias))
 
     def forward(self, inputs):
-        # Przepuszcza dane przez całą sieć (forward propagation)
+        # Przepuszcza dane przez całą sieć
         for layer in self.layers:
             inputs = layer.forward(inputs)
         return inputs
@@ -25,8 +29,6 @@ class MLP:
             layer.update_weights(learning_rate, momentum)
 
     def save_to_file(self, filename, loss_history=None):
-        # Zapisuje strukturę i wagi sieci do pliku JSON
-
 
         data = {
             "use_bias": self.use_bias,

@@ -30,6 +30,8 @@ class MLPTrainer:
             for i in indices:
                 output = self.mlp.forward(X[i])  # Propagacja w przód
                 loss = np.mean((output - y[i]) ** 2)  # Średni błąd MSE
+                # czyli output np [0.1, 0.8, 0.1] - [0,   1,   0] = [0.1, -0.2, 0.1] i to do kwadratu robie
+                # i potem z tego średnią biore
                 total_loss += loss
 
                 self.mlp.backward(y[i], self.learning_rate, self.momentum)  # Uczenie sieci (backprop)
@@ -51,7 +53,6 @@ class MLPTrainer:
                 print(f"Przerwano na epoce {epoch + 1} (blad < {min_loss})")
                 break
 
-        # Zapis do pliku JSON
         with open("loss_log.json", "w") as f:
             json.dump(loss_log, f, indent=4)
 
@@ -67,22 +68,20 @@ class MLPTrainer:
             error_vector = output - expected
             mse = np.mean(error_vector ** 2)
 
-            # Pobieranie warstw
-            hidden_layer = self.mlp.layers[0]
-            output_layer = self.mlp.layers[-1]
-
-            # Dane neuronów
-            hidden_outputs = hidden_layer.get_outputs().tolist()
-            output_outputs = output_layer.get_outputs().tolist()
-
-            hidden_weights = [
-                {"weights": neuron.weights.tolist(), "bias": neuron.bias}
-                for neuron in hidden_layer.neurons
-            ]
-            output_weights = [
-                {"weights": neuron.weights.tolist(), "bias": neuron.bias}
-                for neuron in output_layer.neurons
-            ]
+            # Zbieranie danych o wszystkich warstwach
+            layer_logs = []
+            for layer_index, layer in enumerate(self.mlp.layers):
+                layer_log = {
+                    "layer_index": layer_index,
+                    "outputs": layer.get_outputs().tolist(),
+                    "neurons": []
+                }
+                for neuron in layer.neurons:
+                    layer_log["neurons"].append({
+                        "weights": neuron.weights.tolist(),
+                        "bias": neuron.bias
+                    })
+                layer_logs.append(layer_log)
 
             entry = {
                 "input": input_vector.tolist(),
@@ -90,10 +89,7 @@ class MLPTrainer:
                 "output": output.tolist(),
                 "error": error_vector.tolist(),
                 "mse": mse,
-                "hidden_outputs": hidden_outputs,
-                "output_outputs": output_outputs,
-                "hidden_weights": hidden_weights,
-                "output_weights": output_weights
+                "layers": layer_logs
             }
 
             log_entries.append(entry)
