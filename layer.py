@@ -2,7 +2,6 @@ import numpy as np
 from neuron import Neuron
 
 class Layer:
-    # Klasa reprezentująca jedną warstwę neuronów (ukrytą lub wyjściową)
     def __init__(self, num_neurons, num_inputs_per_neuron, use_bias=True):
         # Tworzy listę neuronów, każdy ma tyle wejść ile wyjść poprzedniej warstwy
         self.neurons = [Neuron(num_inputs_per_neuron, use_bias) for _ in range(num_neurons)]

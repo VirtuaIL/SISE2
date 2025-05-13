@@ -3,12 +3,25 @@ import matplotlib.pyplot as plt
 import json
 
 class MLPTrainer:
-    # Klasa odpowiedzialna za trening i testowanie sieci MLP
-    def __init__(self, mlp, learning_rate=0.1, momentum=0.0):
-        self.mlp = mlp  # Sieć neuronowa typu MLP
+    def __init__(self, mlp, learning_rate=0.1, momentum=0.0, X_test=None, y_test=None):
+        self.mlp = mlp
         self.learning_rate = learning_rate  # Współczynnik uczenia
         self.momentum = momentum  # Momentum - wpływ poprzednich zmian wag
-        self.loss_history = []  # Historia błędów dla wykresu
+        self.loss_history = []  # Historia błędów dla wykresu - trening
+        self.test_loss_history = []
+
+        self.X_test = X_test
+        self.y_test = y_test
+
+    def evaluate_loss(self, X, y):
+        # Oblicza średni błąd (MSE) na zbiorze X, y — bez modyfikacji wag
+        total_loss = 0.0
+        for i in range(len(X)):
+            output = self.mlp.forward(X[i])
+            loss = np.mean((output - y[i]) ** 2)
+            total_loss += loss
+        return total_loss / len(X)
+
 
     def train(self, X, y, epochs=100, shuffle=True, min_loss=None, log_interval=1):
         # Trening sieci neuronowej
@@ -16,12 +29,14 @@ class MLPTrainer:
         # min_loss - jeśli średni błąd spadnie poniżej tej wartości, zatrzymaj naukę
         # log_interval - co ile epok zapisywać błąd do pliku
 
+
+
         loss_log = []
 
         for epoch in range(epochs):
             total_loss = 0.0
 
-            # Tworzymy kolejność indeksów i losowo tasujemy jeśli trzeba
+            # Tworzymy kolejność indeksów i tasujemy
             indices = np.arange(len(X))
             if shuffle:
                 np.random.shuffle(indices)
@@ -38,6 +53,10 @@ class MLPTrainer:
 
             average_loss = total_loss / len(X)  # Błąd średni dla całej epoki
             self.loss_history.append(average_loss)
+
+            if self.X_test is not None and self.y_test is not None:
+                test_loss = self.evaluate_loss(self.X_test, self.y_test)
+                self.test_loss_history.append(test_loss)
 
             # Logowanie błędu do listy co log_interval epok
             if epoch % log_interval == 0:
@@ -104,11 +123,14 @@ class MLPTrainer:
     def plot_loss(self):
         # Wykres błędu uczącej się sieci
         plt.figure(figsize=(8, 5))
-        plt.plot(self.loss_history)
+        plt.plot(self.loss_history, label="Trening")
+        if self.test_loss_history:
+            plt.plot(self.test_loss_history, label="Test", linestyle="--")
         plt.xlabel("Numer epoki")
         plt.ylabel("Średni błąd")
         plt.title("Progres")
         plt.grid(True)
-        plt.ylim(bottom=0)  # Oś Y od zera
+        plt.ylim(bottom=0)
+        plt.legend()
         plt.tight_layout()
         plt.show()

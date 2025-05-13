@@ -3,7 +3,6 @@ import numpy as np
 import json
 
 class MLP:
-
     def __init__(self, layer_sizes, use_bias=True):
         self.layers = []
         self.use_bias = use_bias

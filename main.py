@@ -18,8 +18,9 @@ def run_iris_mode():
         mlp = MLP(layer_sizes=[4, 6, 3], use_bias=True)
         loss_history = []
 
-    trainer = MLPTrainer(mlp)
+    trainer = MLPTrainer(mlp, X_test=X_test, y_test=y_test)
     trainer.loss_history = loss_history
+    trainer.test_loss_history = []
 
     if not load_existing or input("Czy przeprowadzić trening sieci? (t/n): ").strip().lower() == "t":
         momentum = float(input("Podaj wartość momentum (0.0 jeśli nie chcesz go używać): ").strip())
@@ -53,6 +54,7 @@ def run_iris_mode():
             log_interval=log_interval
         )
 
+
         save = input(f"Czy zapisać wytrenowaną sieć do '{model_filename}'? (t/n): ").strip().lower() == "t"
         if save:
             mlp.save_to_file(model_filename, loss_history=trainer.loss_history)
@@ -79,7 +81,7 @@ def run_iris_mode():
 def run_autoencoder_mode():
     print("=== Tryb: Autoenkoder ===")
 
-    # Dane wejściowe (wzorce tożsamościowe)
+    # Dane wejściowe
     X = np.array([
         [1, 0, 0, 0],
         [0, 1, 0, 0],
@@ -89,9 +91,10 @@ def run_autoencoder_mode():
     y = X.copy()
 
     mlp = MLP(layer_sizes=[4, 2, 4], use_bias=True)
-    trainer = MLPTrainer(mlp, learning_rate=0.2, momentum=0.9)
+    trainer = MLPTrainer(mlp, learning_rate=0.2, momentum=0.9, X_test=X, y_test=y)
 
-    trainer.train(X, y, epochs=5000, shuffle=True, log_interval=100)
+    trainer.train(X, y, epochs=2500, shuffle=True, log_interval=100)
+
 
     trainer.plot_loss()
 
